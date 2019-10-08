@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func allCountries() []byte {
+func AllCountries() []byte {
 	countries, err := os.Open("./db/countries.json")
 
 	if err != nil {
