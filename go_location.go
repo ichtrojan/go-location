@@ -61,7 +61,7 @@ func GetStatesByCtyID(ctyid int) State {
 func AllCities() City {
 	var cities City
 
-	_ = json.Unmarshal(loadCountries(), &cities)
+	_ = json.Unmarshal(loadCities(), &cities)
 	return cities
 }
 
