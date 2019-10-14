@@ -7,7 +7,7 @@ import (
 )
 
 func loadCountries() []byte {
-	file, err := os.Open("/home/Youngestev/go/bin/src/github.com/Youngestdev/go-location/db/countries.json")
+	file, err := os.Open("./db/countries.json")
 
 	if err != nil {
 		fmt.Println(err)
@@ -18,7 +18,7 @@ func loadCountries() []byte {
 }
 
 func loadStates() []byte {
-	file, err := os.Open("/home/Youngestev/go/bin/src/github.com/Youngestdev/go-location/db/states.json")
+	file, err := os.Open("./db/states.json")
 
 	if err != nil {
 		fmt.Println(err)
@@ -29,7 +29,7 @@ func loadStates() []byte {
 }
 
 func loadCities() []byte {
-	file, err := os.Open("/home/Youngestev/go/bin/src/github.com/Youngestdev/go-location/db/cities.json")
+	file, err := os.Open("./db/cities.json")
 
 	if err != nil {
 		fmt.Println(err)
