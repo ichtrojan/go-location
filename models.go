@@ -1,4 +1,4 @@
-package go_location
+package golocation
 
 type Country []struct {
 	ID        int    `json:"id"`
