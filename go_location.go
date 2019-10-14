@@ -8,8 +8,8 @@ func AllCountries() Country {
 	var countries Country
 
 	_ = json.Unmarshal(loadCountries(), &countries)
-	return countries
 
+	return countries
 }
 
 func GetCountry(id int) Country {
@@ -22,6 +22,7 @@ func GetCountry(id int) Country {
 			return Country{cty}
 		}
 	}
+
 	return nil
 }
 
@@ -29,6 +30,7 @@ func AllStates() State {
 	var states State
 
 	_ = json.Unmarshal(loadStates(), &states)
+
 	return states
 }
 
@@ -42,19 +44,21 @@ func GetState(id int) interface{} {
 			return s
 		}
 	}
+
 	return nil
 }
 
-// TODO: Return all matches.
 func GetStatesByCtyID(ctyid int) State {
 	var state State
 
 	_ = json.Unmarshal(loadStates(), &state)
+
 	for i, s := range state {
 		if ctyid == state[i].CountryID {
 			return State{s}
 		}
 	}
+
 	return nil
 }
 
@@ -62,6 +66,7 @@ func AllCities() City {
 	var cities City
 
 	_ = json.Unmarshal(loadCities(), &cities)
+
 	return cities
 }
 
@@ -75,6 +80,7 @@ func GetCity(id int) interface{} {
 			return c
 		}
 	}
+
 	return nil
 }
 
@@ -88,5 +94,6 @@ func GetCities(stateid int) interface{} {
 			return cities
 		}
 	}
+
 	return nil
 }

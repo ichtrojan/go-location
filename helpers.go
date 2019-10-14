@@ -14,6 +14,7 @@ func loadCountries() []byte {
 	}
 
 	countries, _ := ioutil.ReadAll(file)
+
 	return countries
 }
 
@@ -25,6 +26,7 @@ func loadStates() []byte {
 	}
 
 	states, _ := ioutil.ReadAll(file)
+
 	return states
 }
 
@@ -36,5 +38,6 @@ func loadCities() []byte {
 	}
 
 	cities, _ := ioutil.ReadAll(file)
+
 	return cities
 }
