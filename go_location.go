@@ -2,6 +2,7 @@ package golocation
 
 import (
 	"database/sql"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -16,19 +17,25 @@ var (
 	stateId   int
 )
 
-func AllCountries() []Country {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+func AllCountries() ([]Country, error) {
+
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return nil, err
+	}
 
 	statement, err := database.Query("SELECT * FROM countries")
-
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var countries []Country
 
 	for statement.Next() {
 		err = statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return nil, err
+		}
 
 		country := Country{
 			Id:        id,
@@ -42,22 +49,27 @@ func AllCountries() []Country {
 
 	_ = database.Close()
 
-	return countries
+	return countries, nil
 }
 
-func AllStates() []State {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+func AllStates() ([]State, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return nil, err
+	}
 
 	statement, err := database.Query("SELECT * FROM states")
-
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var states []State
 
 	for statement.Next() {
 		err = statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return nil, err
+		}
 
 		state := State{
 			Id:        id,
@@ -70,22 +82,27 @@ func AllStates() []State {
 
 	_ = database.Close()
 
-	return states
+	return states, nil
 }
 
-func AllCities() []City {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+func AllCities() ([]City, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return nil, err
+	}
 
 	statement, err := database.Query("SELECT * FROM cities")
-
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var cities []City
 
 	for statement.Next() {
 		err = statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return nil, err
+		}
 
 		city := City{
 			Id:      id,
@@ -98,15 +115,19 @@ func AllCities() []City {
 
 	_ = database.Close()
 
-	return cities
+	return cities, nil
 }
 
-func GetCountry(countryId int) Country {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+func GetCountry(countryId int) (Country, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return Country{}, err
+	}
 
 	statement, err := database.Query("SELECT * FROM countries WHERE id = ?", countryId)
-
-	checkErr(err)
+	if err != nil {
+		return Country{}, err
+	}
 
 	var country Country
 
@@ -114,8 +135,9 @@ func GetCountry(countryId int) Country {
 
 	for statement.Next() {
 		err := statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return Country{}, err
+		}
 
 		country = Country{
 			Id:        id,
@@ -125,15 +147,18 @@ func GetCountry(countryId int) Country {
 		}
 	}
 
-	return country
+	return country, nil
 }
 
-func GetCity(cityId int) City {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
-
+func GetCity(cityId int) (City, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return City{}, err
+	}
 	statement, err := database.Query("SELECT * FROM cities WHERE id = ?", cityId)
-
-	checkErr(err)
+	if err != nil {
+		return City{}, err
+	}
 
 	var city City
 
@@ -141,8 +166,9 @@ func GetCity(cityId int) City {
 
 	for statement.Next() {
 		err := statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return City{}, err
+		}
 
 		city = City{
 			Id:      id,
@@ -151,15 +177,18 @@ func GetCity(cityId int) City {
 		}
 	}
 
-	return city
+	return city, err
 }
 
-func GetState(stateId int) State {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
-
+func GetState(stateId int) (State, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return State{}, nil
+	}
 	statement, err := database.Query("SELECT * FROM states WHERE id = ?", stateId)
-
-	checkErr(err)
+	if err != nil {
+		return State{}, nil
+	}
 
 	var state State
 
@@ -167,8 +196,9 @@ func GetState(stateId int) State {
 
 	for statement.Next() {
 		err := statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return State{}, nil
+		}
 
 		state = State{
 			Id:        id,
@@ -177,22 +207,26 @@ func GetState(stateId int) State {
 		}
 	}
 
-	return state
+	return state, nil
 }
 
-func GetCountryStates(countryId int) []State {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
-
+func GetCountryStates(countryId int) ([]State, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return nil, err
+	}
 	statement, err := database.Query("SELECT * FROM states WHERE country_id = ?", countryId)
-
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var states []State
 
 	for statement.Next() {
 		err = statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return nil, err
+		}
 
 		state := State{
 			Id:        id,
@@ -205,23 +239,26 @@ func GetCountryStates(countryId int) []State {
 
 	_ = database.Close()
 
-	return states
+	return states, err
 }
 
-func GetStateCites(stateId int) []City {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
-
+func GetStateCites(stateId int) ([]City, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return nil, err
+	}
 	statement, err := database.Query("SELECT * FROM cities WHERE state_id = ?", stateId)
-
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var cities []City
 
 	for statement.Next() {
 		err = statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
-
-		checkErr(err)
-
+		if err != nil {
+			return nil, err
+		}
 		city := City{
 			Id:      id,
 			Name:    name,
@@ -233,7 +270,7 @@ func GetStateCites(stateId int) []City {
 
 	_ = database.Close()
 
-	return cities
+	return cities, err
 }
 
 func checkErr(err error) {
