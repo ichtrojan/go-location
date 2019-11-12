@@ -1,92 +1,243 @@
 package golocation
 
 import (
-	"encoding/json"
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func AllCountries() Country {
-	var countries Country
+var (
+	id        int
+	code      string
+	name      string
+	phonecode int
+	createdAt string
+	updatedAt string
+	countryId int
+	stateId   int
+)
 
-	_ = json.Unmarshal(loadCountries(), &countries)
-	return countries
+func AllCountries() []Country {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
 
-}
+	statement, err := database.Query("SELECT * FROM countries")
 
-func GetCountry(id int) Country {
-	var country Country
+	checkErr(err)
 
-	_ = json.Unmarshal(loadCountries(), &country)
+	var countries []Country
 
-	for idx, cty := range country {
-		if id == country[idx].ID {
-			return Country{cty}
+	for statement.Next() {
+		err = statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		country := Country{
+			Id:        id,
+			Code:      code,
+			Name:      name,
+			Phonecode: phonecode,
 		}
+
+		countries = append(countries, country)
 	}
-	return nil
+
+	_ = database.Close()
+
+	return countries
 }
 
-func AllStates() State {
-	var states State
+func AllStates() []State {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
 
-	_ = json.Unmarshal(loadStates(), &states)
+	statement, err := database.Query("SELECT * FROM states")
+
+	checkErr(err)
+
+	var states []State
+
+	for statement.Next() {
+		err = statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		state := State{
+			Id:        id,
+			Name:      name,
+			CountryId: countryId,
+		}
+
+		states = append(states, state)
+	}
+
+	_ = database.Close()
+
 	return states
 }
 
-func GetState(id int) interface{} {
-	var state State
+func AllCities() []City {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
 
-	_ = json.Unmarshal(loadStates(), &state)
+	statement, err := database.Query("SELECT * FROM cities")
 
-	for idx, s := range state {
-		if id == state[idx].ID {
-			return s
+	checkErr(err)
+
+	var cities []City
+
+	for statement.Next() {
+		err = statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		city := City{
+			Id:      id,
+			Name:    name,
+			StateId: stateId,
 		}
+
+		cities = append(cities, city)
 	}
-	return nil
-}
 
-// TODO: Return all matches.
-func GetStatesByCtyID(ctyid int) State {
-	var state State
+	_ = database.Close()
 
-	_ = json.Unmarshal(loadStates(), &state)
-	for i, s := range state {
-		if ctyid == state[i].CountryID {
-			return State{s}
-		}
-	}
-	return nil
-}
-
-func AllCities() City {
-	var cities City
-
-	_ = json.Unmarshal(loadCities(), &cities)
 	return cities
 }
 
-func GetCity(id int) interface{} {
-	var city City
+func GetCountry(countryId int) Country {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
 
-	_ = json.Unmarshal(loadCities(), &city)
+	statement, err := database.Query("SELECT * FROM countries WHERE id = ?", countryId)
 
-	for idx, c := range city {
-		if id == city[idx].ID {
-			return c
+	checkErr(err)
+
+	var country Country
+
+	defer statement.Close()
+
+	for statement.Next() {
+		err := statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		country = Country{
+			Id:        id,
+			Code:      code,
+			Name:      name,
+			Phonecode: phonecode,
 		}
 	}
-	return nil
+
+	return country
 }
 
-func GetCities(stateid int) interface{} {
+func GetCity(cityId int) City {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
+
+	statement, err := database.Query("SELECT * FROM cities WHERE id = ?", cityId)
+
+	checkErr(err)
+
 	var city City
 
-	_ = json.Unmarshal(loadCities(), &city)
+	defer statement.Close()
 
-	for idx, cities := range city {
-		if stateid == city[idx].StateID {
-			return cities
+	for statement.Next() {
+		err := statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		city = City{
+			Id:      id,
+			Name:    name,
+			StateId: stateId,
 		}
 	}
-	return nil
+
+	return city
+}
+
+func GetState(stateId int) State {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
+
+	statement, err := database.Query("SELECT * FROM states WHERE id = ?", stateId)
+
+	checkErr(err)
+
+	var state State
+
+	defer statement.Close()
+
+	for statement.Next() {
+		err := statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		state = State{
+			Id:        id,
+			Name:      name,
+			CountryId: countryId,
+		}
+	}
+
+	return state
+}
+
+func GetCountryStates(countryId int) []State {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
+
+	statement, err := database.Query("SELECT * FROM states WHERE country_id = ?", countryId)
+
+	checkErr(err)
+
+	var states []State
+
+	for statement.Next() {
+		err = statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		state := State{
+			Id:        id,
+			Name:      name,
+			CountryId: countryId,
+		}
+
+		states = append(states, state)
+	}
+
+	_ = database.Close()
+
+	return states
+}
+
+func GetStateCites(stateId int) []City {
+	database, _ := sql.Open("sqlite3", "../location.sqlite")
+
+	statement, err := database.Query("SELECT * FROM cities WHERE state_id = ?", stateId)
+
+	checkErr(err)
+
+	var cities []City
+
+	for statement.Next() {
+		err = statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
+
+		checkErr(err)
+
+		city := City{
+			Id:      id,
+			Name:    name,
+			StateId: stateId,
+		}
+
+		cities = append(cities, city)
+	}
+
+	_ = database.Close()
+
+	return cities
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
