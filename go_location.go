@@ -39,7 +39,6 @@ func New() (*App, error) {
 
 //AllCountries - Function to return the list of available countries.
 func (app *App) AllCountries() ([]Country, error) {
-	// database, _ := sql.Open("sqlite3", "../location.sqlite")
 	//at this point, we assume that the application has been initialized successfully.
 	database := app.database
 	if database == nil {
@@ -56,7 +55,6 @@ func (app *App) AllCountries() ([]Country, error) {
 
 //AllStates - Function to return all the available states.
 func (app *App) AllStates() ([]State, error) {
-	// database, _ := sql.Open("sqlite3", "../location.sqlite")
 	database := app.database
 	defer database.Close()
 
@@ -86,7 +84,6 @@ func (app *App) AllStates() ([]State, error) {
 
 //AllCities - Function to return all the available cities
 func (app *App) AllCities() ([]City, error) {
-	// database, _ := sql.Open("sqlite3", "../location.sqlite")
 	database := app.database
 	defer database.Close()
 
@@ -230,7 +227,6 @@ func (app *App) GetCountryStates(countryID int) ([]State, error) {
 
 //GetStateCites - function to retrieve the citites that are present within a state
 func (app *App) GetStateCites(stateID int) ([]City, error) {
-	// database, _ := sql.Open("sqlite3", "../location.sqlite")
 	database = app.database
 
 	statement, err := database.Query("SELECT * FROM cities WHERE state_id = ?", stateID)

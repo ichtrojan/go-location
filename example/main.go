@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -107,6 +106,5 @@ func main() {
 		_ = json.NewEncoder(w).Encode(cities)
 	})
 
-	fmt.Println("Server started")
 	_ = http.ListenAndServe(":9990", route)
 }
