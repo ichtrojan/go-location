@@ -2,6 +2,7 @@ package golocation
 
 import (
 	"database/sql"
+	"errors"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -41,29 +42,13 @@ func (app *App) AllCountries() ([]Country, error) {
 	// database, _ := sql.Open("sqlite3", "../location.sqlite")
 	//at this point, we assume that the application has been initialized successfully.
 	database := app.database
+	if database == nil {
+		return nil, errors.New("Invalid Database detected")
+	}
 	defer database.Close()
-
-	statement, err := database.Query("SELECT * FROM countries")
+	countries, err := allCountries(database)
 	if err != nil {
 		return nil, err
-	}
-
-	var countries []Country
-
-	for statement.Next() {
-		err = statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		country := Country{
-			Id:        id,
-			Code:      code,
-			Name:      name,
-			Phonecode: phonecode,
-		}
-
-		countries = append(countries, country)
 	}
 
 	return countries, nil
@@ -274,4 +259,30 @@ func (app *App) GetStateCites(stateID int) ([]City, error) {
 
 func checkErr(err error) error {
 	return err
+}
+
+func allCountries(database *sql.DB) ([]Country, error) {
+	statement, err := database.Query("SELECT * FROM countries")
+	if err != nil {
+		return nil, err
+	}
+
+	var countries []Country
+
+	for statement.Next() {
+		err = statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		country := Country{
+			Id:        id,
+			Code:      code,
+			Name:      name,
+			Phonecode: phonecode,
+		}
+
+		countries = append(countries, country)
+	}
+	return countries, err
 }

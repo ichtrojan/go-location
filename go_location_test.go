@@ -16,6 +16,17 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestEmptyDatabaseConnection(t *testing.T) {
+	var app App
+	countries, err := app.AllCountries()
+	if countries != nil {
+		log.Fatal("Countries should be nil")
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func TestAllCountries(t *testing.T) {
 	app, err := New()
 	if err != nil {
