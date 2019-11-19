@@ -115,24 +115,26 @@ func (app *App) AllCities() ([]City, error) {
 }
 
 //GetCountry - function to retrieve the country details
-func (app *App) GetCountry(countryID int) Country {
+func (app *App) GetCountry(countryID int) (*Country, error) {
 	database := app.database
 	defer database.Close()
 
 	statement, err := database.Query("SELECT * FROM countries WHERE id = ?", countryID)
+	if err != nil {
+		return nil, err
+	}
 
-	checkErr(err)
-
-	var country Country
+	var country *Country
 
 	defer statement.Close()
 
 	for statement.Next() {
 		err := statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
 
-		checkErr(err)
-
-		country = Country{
+		country = &Country{
 			Id:        id,
 			Code:      code,
 			Name:      name,
@@ -140,7 +142,7 @@ func (app *App) GetCountry(countryID int) Country {
 		}
 	}
 
-	return country
+	return country, nil
 }
 
 //GetCity - function to retrieve the city information
@@ -153,7 +155,7 @@ func (app *App) GetCity(cityID int) (*City, error) {
 		return nil, err
 	}
 
-	var city City
+	var city *City
 
 	defer statement.Close()
 
@@ -162,14 +164,14 @@ func (app *App) GetCity(cityID int) (*City, error) {
 			return nil, err
 		}
 
-		city = City{
+		city = &City{
 			Id:      id,
 			Name:    name,
 			StateId: stateId,
 		}
 	}
 
-	return &city, nil
+	return city, nil
 }
 
 //GetState - Function to retrieve the states information
@@ -181,7 +183,7 @@ func (app *App) GetState(stateID int) (*State, error) {
 	if err != nil {
 		return nil, err
 	}
-	var state State
+	var state *State
 	defer statement.Close()
 
 	for statement.Next() {
@@ -189,14 +191,14 @@ func (app *App) GetState(stateID int) (*State, error) {
 			return nil, err
 		}
 
-		state = State{
+		state = &State{
 			Id:        id,
 			Name:      name,
 			CountryId: countryId,
 		}
 	}
 
-	return &state, nil
+	return state, nil
 }
 
 //GetCountryStates - Function to retrieve the states related to a country
@@ -251,10 +253,6 @@ func (app *App) GetStateCites(stateID int) ([]City, error) {
 	}
 
 	return cities, nil
-}
-
-func checkErr(err error) error {
-	return err
 }
 
 func allCountries(database *sql.DB) ([]Country, error) {
