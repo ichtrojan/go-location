@@ -2,6 +2,8 @@ package golocation
 
 import (
 	"database/sql"
+	"errors"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -14,50 +16,60 @@ var (
 	updatedAt string
 	countryId int
 	stateId   int
+	database  *sql.DB
 )
 
-func AllCountries() []Country {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
-
-	statement, err := database.Query("SELECT * FROM countries")
-
-	checkErr(err)
-
-	var countries []Country
-
-	for statement.Next() {
-		err = statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
-
-		checkErr(err)
-
-		country := Country{
-			Id:        id,
-			Code:      code,
-			Name:      name,
-			Phonecode: phonecode,
-		}
-
-		countries = append(countries, country)
-	}
-
-	_ = database.Close()
-
-	return countries
+//App - This houses the unexported database, so that it wont be tampered with outside this packaage
+type App struct {
+	database *sql.DB
 }
 
-func AllStates() []State {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+//New - Create a new instance of the go-location package
+func New() (*App, error) {
+	database, err := sql.Open("sqlite3", "../location.sqlite")
+	if err != nil {
+		return nil, err
+	}
+	app := &App{
+		database: database,
+	}
+
+	return app, nil
+}
+
+//AllCountries - Function to return the list of available countries.
+func (app *App) AllCountries() ([]Country, error) {
+	//at this point, we assume that the application has been initialized successfully.
+	database := app.database
+	if database == nil {
+		return nil, errors.New("Invalid Database detected")
+	}
+	defer database.Close()
+	countries, err := allCountries(database)
+	if err != nil {
+		return nil, err
+	}
+
+	return countries, nil
+}
+
+//AllStates - Function to return all the available states.
+func (app *App) AllStates() ([]State, error) {
+	database := app.database
+	defer database.Close()
 
 	statement, err := database.Query("SELECT * FROM states")
-
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var states []State
 
 	for statement.Next() {
 		err = statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return nil, err
+		}
 
 		state := State{
 			Id:        id,
@@ -67,25 +79,26 @@ func AllStates() []State {
 
 		states = append(states, state)
 	}
-
-	_ = database.Close()
-
-	return states
+	return states, err
 }
 
-func AllCities() []City {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+//AllCities - Function to return all the available cities
+func (app *App) AllCities() ([]City, error) {
+	database := app.database
+	defer database.Close()
 
 	statement, err := database.Query("SELECT * FROM cities")
-
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var cities []City
 
 	for statement.Next() {
 		err = statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err != nil {
+			return nil, err
+		}
 
 		city := City{
 			Id:      id,
@@ -98,13 +111,15 @@ func AllCities() []City {
 
 	_ = database.Close()
 
-	return cities
+	return cities, err
 }
 
-func GetCountry(countryId int) Country {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+//GetCountry - function to retrieve the country details
+func (app *App) GetCountry(countryID int) Country {
+	database := app.database
+	defer database.Close()
 
-	statement, err := database.Query("SELECT * FROM countries WHERE id = ?", countryId)
+	statement, err := database.Query("SELECT * FROM countries WHERE id = ?", countryID)
 
 	checkErr(err)
 
@@ -128,21 +143,24 @@ func GetCountry(countryId int) Country {
 	return country
 }
 
-func GetCity(cityId int) City {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+//GetCity - function to retrieve the city information
+func (app *App) GetCity(cityID int) (*City, error) {
+	database = app.database
+	defer database.Close()
 
-	statement, err := database.Query("SELECT * FROM cities WHERE id = ?", cityId)
-
-	checkErr(err)
+	statement, err := database.Query("SELECT * FROM cities WHERE id = ?", cityID)
+	if err != nil {
+		return nil, err
+	}
 
 	var city City
 
 	defer statement.Close()
 
 	for statement.Next() {
-		err := statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err := statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt); err != nil {
+			return nil, err
+		}
 
 		city = City{
 			Id:      id,
@@ -151,24 +169,25 @@ func GetCity(cityId int) City {
 		}
 	}
 
-	return city
+	return &city, nil
 }
 
-func GetState(stateId int) State {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+//GetState - Function to retrieve the states information
+func (app *App) GetState(stateID int) (*State, error) {
+	database := app.database
+	defer database.Close()
 
-	statement, err := database.Query("SELECT * FROM states WHERE id = ?", stateId)
-
-	checkErr(err)
-
+	statement, err := database.Query("SELECT * FROM states WHERE id = ?", stateID)
+	if err != nil {
+		return nil, err
+	}
 	var state State
-
 	defer statement.Close()
 
 	for statement.Next() {
-		err := statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err := statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt); err != nil {
+			return nil, err
+		}
 
 		state = State{
 			Id:        id,
@@ -177,22 +196,22 @@ func GetState(stateId int) State {
 		}
 	}
 
-	return state
+	return &state, nil
 }
 
-func GetCountryStates(countryId int) []State {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
-
-	statement, err := database.Query("SELECT * FROM states WHERE country_id = ?", countryId)
-
-	checkErr(err)
-
+//GetCountryStates - Function to retrieve the states related to a country
+func (app *App) GetCountryStates(countryID int) ([]State, error) {
+	database := app.database
+	statement, err := database.Query("SELECT * FROM states WHERE country_id = ?", countryID)
+	if err != nil {
+		return nil, err
+	}
 	var states []State
 
 	for statement.Next() {
-		err = statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err = statement.Scan(&id, &name, &countryId, &createdAt, &updatedAt); err != nil {
+			return nil, err
+		}
 
 		state := State{
 			Id:        id,
@@ -203,24 +222,24 @@ func GetCountryStates(countryId int) []State {
 		states = append(states, state)
 	}
 
-	_ = database.Close()
-
-	return states
+	return states, nil
 }
 
-func GetStateCites(stateId int) []City {
-	database, _ := sql.Open("sqlite3", "../location.sqlite")
+//GetStateCites - function to retrieve the citites that are present within a state
+func (app *App) GetStateCites(stateID int) ([]City, error) {
+	database = app.database
 
-	statement, err := database.Query("SELECT * FROM cities WHERE state_id = ?", stateId)
-
-	checkErr(err)
+	statement, err := database.Query("SELECT * FROM cities WHERE state_id = ?", stateID)
+	if err != nil {
+		return nil, err
+	}
 
 	var cities []City
 
 	for statement.Next() {
-		err = statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt)
-
-		checkErr(err)
+		if err = statement.Scan(&id, &name, &stateId, &createdAt, &updatedAt); err != nil {
+			return nil, err
+		}
 
 		city := City{
 			Id:      id,
@@ -231,13 +250,35 @@ func GetStateCites(stateId int) []City {
 		cities = append(cities, city)
 	}
 
-	_ = database.Close()
-
-	return cities
+	return cities, nil
 }
 
-func checkErr(err error) {
+func checkErr(err error) error {
+	return err
+}
+
+func allCountries(database *sql.DB) ([]Country, error) {
+	statement, err := database.Query("SELECT * FROM countries")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+
+	var countries []Country
+
+	for statement.Next() {
+		err = statement.Scan(&id, &code, &name, &phonecode, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		country := Country{
+			Id:        id,
+			Code:      code,
+			Name:      name,
+			Phonecode: phonecode,
+		}
+
+		countries = append(countries, country)
+	}
+	return countries, err
 }

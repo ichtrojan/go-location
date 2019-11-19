@@ -2,29 +2,44 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"github.com/ichtrojan/go-location"
+	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	golocation "github.com/ichtrojan/go-location"
 )
 
 func main() {
 	route := mux.NewRouter()
+	golocation, err := golocation.New()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	route.HandleFunc("/country", func(w http.ResponseWriter, r *http.Request) {
-		countries := golocation.AllCountries()
+		countries, err := golocation.AllCountries()
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		_ = json.NewEncoder(w).Encode(countries)
 	})
 
 	route.HandleFunc("/state", func(w http.ResponseWriter, r *http.Request) {
-		states := golocation.AllStates()
+		states, err := golocation.AllStates()
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		_ = json.NewEncoder(w).Encode(states)
 	})
 
 	route.HandleFunc("/city", func(w http.ResponseWriter, r *http.Request) {
-		cities := golocation.AllCities()
+		cities, err := golocation.AllCities()
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		_ = json.NewEncoder(w).Encode(cities)
 	})
@@ -44,7 +59,10 @@ func main() {
 
 		id, _ := strconv.Atoi(vars["id"])
 
-		city := golocation.GetCity(id)
+		city, err := golocation.GetCity(id)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		_ = json.NewEncoder(w).Encode(city)
 	})
@@ -52,9 +70,12 @@ func main() {
 	route.HandleFunc("/state/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		id, _ := strconv.Atoi(vars["id"])
+		id, err := strconv.Atoi(vars["id"])
 
-		state := golocation.GetState(id)
+		state, err := golocation.GetState(id)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		_ = json.NewEncoder(w).Encode(state)
 	})
@@ -64,7 +85,10 @@ func main() {
 
 		id, _ := strconv.Atoi(vars["id"])
 
-		states := golocation.GetCountryStates(id)
+		states, err := golocation.GetCountryStates(id)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		_ = json.NewEncoder(w).Encode(states)
 	})
@@ -74,7 +98,10 @@ func main() {
 
 		id, _ := strconv.Atoi(vars["id"])
 
-		cities := golocation.GetStateCites(id)
+		cities, err := golocation.GetStateCites(id)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		_ = json.NewEncoder(w).Encode(cities)
 	})
