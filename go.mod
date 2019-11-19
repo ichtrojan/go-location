@@ -1,6 +1,6 @@
 module github.com/ichtrojan/go-location
 
-go 1.13
+go 1.12
 
 require (
 	github.com/gorilla/mux v1.7.3
