@@ -49,7 +49,7 @@ func main() {
 
 		id, _ := strconv.Atoi(vars["id"])
 
-		country := golocation.GetCountry(id)
+		country, _ := golocation.GetCountry(id)
 
 		_ = json.NewEncoder(w).Encode(country)
 	})
@@ -70,7 +70,7 @@ func main() {
 	route.HandleFunc("/state/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		id, err := strconv.Atoi(vars["id"])
+		id, _ := strconv.Atoi(vars["id"])
 
 		state, err := golocation.GetState(id)
 		if err != nil {
